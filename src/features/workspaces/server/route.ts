@@ -2,20 +2,39 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { createWorkspaceSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middleware";
+import { generateInviteCode } from "@/lib/utils";
 
-import { DATABASE_ID, IMAGES_BUCKET_ID, WORKSPACES_ID } from "@/config";
-import { ID } from "node-appwrite";
+import { MemberRole } from "@/features/members/types";
+import { DATABASE_ID, IMAGES_BUCKET_ID, MEMBERS_ID, WORKSPACES_ID } from "@/config";
+import { ID, Query } from "node-appwrite";
 
 const app = new Hono()
     .get(
         "/",
         sessionMiddleware,
         async (ctx) => {
+            const user = ctx.get("user");
             const databases = ctx.get("databases");
+
+            const members = await databases.listDocuments(
+                DATABASE_ID,
+                MEMBERS_ID,
+                [Query.equal("userId", user.$id)]
+            )
+
+            if (members.total === 0) {
+                return ctx.json({ data: { documents: [], total: 0}});
+            }
+
+            const workspaceIds = members.documents.map((member) => member.workspaceId);
 
             const workspaces = await databases.listDocuments(
                 DATABASE_ID,
                 WORKSPACES_ID,
+                [
+                    Query.orderDesc("$createdAt"),
+                    Query.contains("$id", workspaceIds)
+                ]
             );
 
             return ctx.json({ data: workspaces });
@@ -57,6 +76,18 @@ const app = new Hono()
                     name,
                     userId: user.$id,
                     imageUrl: uploadedImageUrl,
+                    inviteCode: generateInviteCode(6),
+                }
+            )
+
+            await databases.createDocument(
+                DATABASE_ID,
+                MEMBERS_ID,
+                ID.unique(),
+                {
+                    userId: user.$id,
+                    workspaceId: workspace.$id,
+                    role: MemberRole.ADMIN,
                 }
             )
 

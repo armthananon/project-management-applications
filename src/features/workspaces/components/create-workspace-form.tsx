@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { useCreateWorkspace } from "../api/use-create-workspace";
@@ -29,6 +30,7 @@ interface CreateWorkspaceFormProps {
 }
 
 export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
+  const router = useRouter();
   const { mutate, isPending } = useCreateWorkspace();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,9 +50,9 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
 
     mutate({ form: formData },
       {
-        onSuccess: () => {
+        onSuccess: ({ data }) => {
           form.reset();
-          // redirect to the new workspace
+          router.push(`/workspaces/${data.$id}`);
         },
       }
     );
