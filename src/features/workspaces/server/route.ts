@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { createWorkspaceSchema, updateWorkspaceSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middleware";
@@ -8,6 +9,7 @@ import { MemberRole } from "@/features/members/types";
 import { DATABASE_ID, IMAGES_BUCKET_ID, MEMBERS_ID, WORKSPACES_ID } from "@/config";
 import { ID, Query } from "node-appwrite";
 import { getMember } from "@/features/members/utils";
+import { Workspace } from "../types";
 
 const app = new Hono()
     .get(
@@ -177,6 +179,84 @@ const app = new Hono()
             )
 
             return ctx.json({ data: { $id: workspaceId } });
+        }
+    )
+    .post(
+        "/:workspaceId/reset-invite-code",
+        sessionMiddleware,
+        async (ctx) => {
+            const databases = ctx.get("databases");
+            const user = ctx.get("user");
+
+            const { workspaceId } = ctx.req.param();
+
+            const member = await getMember({
+                databases,
+                workspaceId,
+                userId: user.$id,
+            })
+
+            if (!member || member.role !== MemberRole.ADMIN) {
+                return ctx.json({ error: "Unauthorized" }, 401);
+            }
+
+            // TODO: Delete all members, projects, tasks, etc. associated with the workspace
+            
+            const workspace = await databases.updateDocument(
+                DATABASE_ID,
+                WORKSPACES_ID,
+                workspaceId,
+                {
+                    inviteCode: generateInviteCode(6),
+                }
+            )
+
+            return ctx.json({ data: workspace });
+        }
+    )
+    .post(
+        "/:workspaceId/join",
+        sessionMiddleware,
+        zValidator("json", z.object({ code: z.string() })),
+        async (ctx) => {
+            const databases = ctx.get("databases");
+            const user = ctx.get("user");
+
+            const { workspaceId } = ctx.req.param();
+            const { code } = ctx.req.valid("json");
+
+            const member = await getMember({
+                databases,
+                workspaceId,
+                userId: user.$id,
+            })
+
+            if (member) {
+                return ctx.json({ error: "Already a member" }, 400);
+            }
+
+            const workspace = await databases.getDocument<Workspace>(
+                DATABASE_ID,
+                WORKSPACES_ID,
+                workspaceId
+            )
+
+            if (workspace.inviteCode !== code) {
+                return ctx.json({ error: "Invalid invite code" }, 400);
+            }
+
+            await databases.createDocument(
+                DATABASE_ID,
+                MEMBERS_ID,
+                ID.unique(),
+                {
+                    workspaceId,
+                    userId: user.$id,
+                    role: MemberRole.MEMBER,
+                }
+            )
+
+            return ctx.json({ data: workspace });
         }
     )
 
