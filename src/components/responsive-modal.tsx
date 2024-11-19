@@ -31,7 +31,7 @@ export const ResponsiveModal = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerHeader>
+      <DrawerHeader className="hidden">
         <DrawerTitle></DrawerTitle>
         <DrawerDescription></DrawerDescription>
       </DrawerHeader>
