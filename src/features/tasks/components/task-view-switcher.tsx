@@ -1,24 +1,26 @@
 "use client";
 
+import { useCallback } from "react";
 import { useQueryState } from "nuqs";
 
 import { useCreateTaskModal } from "../hooks/use-create-task-modal";
 import { useGetTasks } from "../api/use-get-tasks";
 import { useWorkspaceId } from "@/features/workspaces/hooks/use-workspace-id";
 import { useTaskFilters } from "../hooks/use-task-filters";
+import { useBulkUpdateTasks } from "../api/use-bulk-update-tasks";
 
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
+import { DataKanban } from "./data-kanban";
+import { DataCalendar } from "./data-calendar";
+import { DataFilters } from "./data-filters";
 
 import { DottedSeparator } from "@/components/dotted-separator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader, PlusIcon } from "lucide-react";
-import { DataFilters } from "./data-filters";
-import { DataKanban } from "./data-kanban";
-import { useCallback } from "react";
+
 import { TaskStatus } from "../types";
-import { useBulkUpdateTasks } from "../api/use-bulk-update-tasks";
 
 export const TaskViewSwitcher = () => {
   const [{
@@ -92,8 +94,7 @@ export const TaskViewSwitcher = () => {
               <DataKanban onChange={onKanbanChange} data={tasks?.documents ?? []} />
             </TabsContent>
             <TabsContent value="calendar" className="mt-0">
-                Data Calendar
-                {JSON.stringify(tasks)}
+              <DataCalendar data={tasks?.documents ?? []} />
             </TabsContent>
             </>
         )}
