@@ -43,6 +43,55 @@ const app = new Hono()
             return ctx.json({ data: workspaces });
         }
     )
+    .get(
+        "/:workspaceId",
+        sessionMiddleware,
+        async (ctx) => {
+            const user = ctx.get("user");
+            const databases = ctx.get("databases");
+            const { workspaceId } = ctx.req.param();
+
+            const member = await getMember({
+                databases,
+                workspaceId,
+                userId: user.$id,
+            })
+
+            if (!member) {
+                return ctx.json({ error: "Unauthorized" }, 401);
+            }
+
+            const workspace = await databases.getDocument<Workspace>(
+                DATABASE_ID,
+                WORKSPACES_ID,
+                workspaceId
+            )
+
+            return ctx.json({ data: workspace });
+        }
+    )
+    .get(
+        "/:workspaceId/info",
+        sessionMiddleware,
+        async (ctx) => {
+            const databases = ctx.get("databases");
+            const { workspaceId } = ctx.req.param();
+
+            const workspace = await databases.getDocument<Workspace>(
+                DATABASE_ID,
+                WORKSPACES_ID,
+                workspaceId
+            )
+
+            return ctx.json({ 
+                data: { 
+                    $id: workspace.$id, 
+                    name: workspace.name, 
+                    imageUrl: workspace.imageUrl 
+                }
+            });
+        }
+    )
     .post(
         "/",
         zValidator("form", createWorkspaceSchema),
