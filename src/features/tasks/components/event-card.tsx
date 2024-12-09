@@ -8,10 +8,11 @@ import { ProjectAvatar } from "@/features/projects/components/project-avatar";
 
 import { Project } from "@/features/projects/types";
 import { TaskStatus } from "../types";
+import { Member } from "@/features/members/types";
 
 interface EventCardProps {
   title: string;
-  assignee: any;
+  assignee: Member;
   project: Project;
   status: TaskStatus;
   id: string;
