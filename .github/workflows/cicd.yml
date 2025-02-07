@@ -67,10 +67,11 @@ jobs:
         run: bun run build
 
       - name: Upload artifact
+        id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./src/app/out
-
+          path: ./.next
+          
   # Deployment job
   deploy:
     environment:
