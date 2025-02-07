@@ -67,9 +67,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
 
-      # install dependencies
+      # bun test
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+
+      # install dependencies
+      - name: Install dependencies
+        run: ${{ steps.detect-package-manager.outputs.manager }} install
       
       # build
       - name: Build
