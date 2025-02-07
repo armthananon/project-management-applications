@@ -44,6 +44,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       # install dependencies
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -68,5 +71,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          publish_dir: ./out
