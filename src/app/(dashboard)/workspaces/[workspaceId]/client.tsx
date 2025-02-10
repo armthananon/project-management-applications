@@ -77,7 +77,7 @@ export const TasksList = ({ data, total }: TasksListProps) => {
         </div>
         <DottedSeparator className="my-4" />
         <ul className="flex flex-col gap-y-4">
-          {data.map((task) => (
+          {data.slice(0, 3).map((task) => (
             <li key={task.$id}>
               <Link href={`/workspaces/${workspaceId}/tasks/${task.$id}`}>
                 <Card className="shadow-none rounded-lg hover:opacity-75 transition">

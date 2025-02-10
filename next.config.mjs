@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/project-management-applications',
+  // basePath: '/project-management-applications',
   reactStrictMode: true,
 };
 
